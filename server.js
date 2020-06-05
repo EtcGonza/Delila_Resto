@@ -1,14 +1,31 @@
-const express = require("express");
+const express = require('express');
 const server = express();
-const jwt = require('jsonwebtoken');
-
-const bodyParser = require("body-parser");
-const firma = 'I am batman';
+const serverPort = 3000;
 
 const colors = require('colors');
 
+const mysql = require('mysql');
+const dataBase = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: '',
+    database: 'delila_resto'
+});
+
+dataBase.connect((error) => {
+    if (!error) {
+        console.log(colors.green('[Success] DB CONNECTED.'));
+    } else {
+        console.log(colors.red('[WARNING] ERROR IN DB.'));
+    }
+});
+// const dataBase = mysql();
+
+// const jwt = require('jsonwebtoken');
+// const firma = 'I am batman';
+
+const bodyParser = require('body-parser');
 server.use(bodyParser.json());
-// server.use(existeUsuario);
 
 const productos = [{
         id: 1,
@@ -95,11 +112,21 @@ const usuarios = [{
 
 // ENDPOINTS USUARIOS
 server.get('/usuarios', (req, res) => {
-    const usuarioActivos = usuarios.filter(usuario => usuario.activo === true);
-    res.json(usuarioActivos);
+
+    dataBase.query("SELECT * FROM usuarios WHERE activo = 1", (error, usuariosActivos) => {
+        if (error) {
+            console.log(colors.red('[ERROR] Wrong query.'));
+            res.json('Error al obtener usuarios.');
+            res.status(401);
+        } else {
+            console.log(colors.green('[Success] Select usuarios.'));
+            console.log(colors.blue(usuariosActivos));
+            res.json(usuariosActivos);
+        }
+    });
 });
 
-server.post('/usuarios/crear', existeUsuario(), (req, res) => {
+server.post('/usuarios/crear', (req, res) => {
 
     if (!req.body) {
         return res.status(409).send("El body esta vacio!");
@@ -255,6 +282,6 @@ function validarUsuariocontrasenia(email, contrasenia) {
     }
 }
 
-server.listen(3000, () => {
-    console.log("Listering.");
+server.listen(serverPort, () => {
+    console.log(colors.green('[Listering] port', serverPort));
 });
