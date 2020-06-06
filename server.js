@@ -112,7 +112,6 @@ const usuarios = [{
 
 // ENDPOINTS USUARIOS
 server.get('/usuarios', (req, res) => {
-
     dataBase.query("SELECT * FROM usuarios WHERE activo = 1", (error, usuariosActivos) => {
         if (error) {
             console.log(colors.red('[ERROR] Wrong query.'));
@@ -130,36 +129,50 @@ server.post('/usuarios/crear', (req, res) => {
 
     if (!req.body) {
         return res.status(409).send("El body esta vacio!");
+    } else {
+
+        const nuevoUsuario = {
+            id_usuario: null,
+            nombre: req.body.nombre,
+            apellido: req.body.apellido,
+            email: req.body.email,
+            celular: req.body.celular,
+            direccion: req.body.direccion,
+            contrasenia: req.body.contrasenia,
+            administrador: false,
+            activo: true
+        };
+
+        dataBase.query('INSERT INTO usuarios SET ?', nuevoUsuario, (error, result) => {
+            if (error) {
+                console.log(colors.red('[ERROR] Wrong query.', error));
+                res.json('Error al crear el usuario.');
+                res.status(401);
+            } else {
+                console.log(colors.green('[Success] User created.'));
+                res.status(201);
+                res.json(nuevoUsuario);
+            }
+        });
     }
-
-    const nuevoUsuario = {
-        nombre: req.body.nombre,
-        apellido: req.body.apellido,
-        direccion: req.body.direccion,
-        celular: req.body.celular,
-        email: req.body.email,
-        activo: true,
-        administrador: false,
-        contrasenia: "0000000000"
-    };
-
-    usuarios.push(nuevoUsuario);
-    res.status(200).json(nuevoUsuario);
 });
 
 server.delete('/usuarios/delete/:idUsuario', (req, res) => {
-    const idUsuario = parseInt(req.params.idUsuario);
-    const usuarioEncontrado = usuarios.find(usuario => usuario.id === idUsuario);
+    const idUsuario = req.params.idUsuario;
 
-    if (usuarioEncontrado) {
-        usuarioEncontrado.activo = false;
-        res.status(200);
-        res.json('Usuario eliminado');
-    } else {
-        res.status(200);
-        res.json('No se pudo eliminar al Usuario');
-    }
-
+    dataBase.query('UPDATE usuarios SET activo = false WHERE id_usuario = ?', idUsuario, (error, data) => {
+        if (error) {
+            console.log(colors.red('[ERROR] Wrong query.', error));
+            res.status(404).send({
+                message: 'Wrong query or id_usuario'
+            });
+        } else {
+            console.log(colors.green('[Success] Usuario eliminado.'));
+            res.status(200).send({
+                message: 'Usuario deleted successfully.'
+            });
+        }
+    });
 });
 
 server.put('/usuarios/actualizar/idUsuario', (req, res) => {
@@ -283,5 +296,6 @@ function validarUsuariocontrasenia(email, contrasenia) {
 }
 
 server.listen(serverPort, () => {
+    console.log(colors.green('----------------'));
     console.log(colors.green('[Listering] port', serverPort));
 });
