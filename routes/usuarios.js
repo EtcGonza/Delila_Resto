@@ -4,6 +4,8 @@ const server = express();
 const colors = require('colors');
 const dataBase = require('../config/dataBase');
 
+const middlewares = require('../middlewares/usuarios_middlewares');
+
 // Obtengo todos los usuarios ACTIVOS.
 server.get('/usuarios', (req, res) => {
     dataBase.query("SELECT * FROM usuarios WHERE activo = true AND administrador = false", (error, usuariosActivos) => {
@@ -35,36 +37,31 @@ server.get('/usuarios/administradores', (req, res) => {
 });
 
 // Creo un usuario.
-server.post('/usuarios/crearUsuario', (req, res) => {
+server.post('/usuarios/crearUsuario', middlewares.emailsDuplicados, (req, res) => {
 
-    if (!req.body) {
-        return res.status(409).send("El body esta vacio!");
-    } else {
-
-        const nuevoUsuario = {
-            id_usuario: null,
-            nombre: req.body.nombre,
-            apellido: req.body.apellido,
-            email: req.body.email,
-            celular: req.body.celular,
-            direccion: req.body.direccion,
-            contrasenia: req.body.contrasenia,
-            administrador: false,
-            activo: true
-        };
-
-        dataBase.query('INSERT INTO usuarios SET ?', nuevoUsuario, (error) => {
-            if (error) {
-                console.log(colors.red('[ERROR] Wrong query.', error));
-                res.json('Error al crear el usuario.');
-                res.status(401);
-            } else {
-                console.log(colors.green('[Success] User created.'));
-                res.status(201);
-                res.json(nuevoUsuario);
-            }
-        });
-    }
+    const nuevoUsuario = {
+        id_usuario: null,
+        nombre: req.body.nombre,
+        apellido: req.body.apellido,
+        email: req.body.email,
+        celular: req.body.celular,
+        direccion: req.body.direccion,
+        contrasenia: req.body.contrasenia,
+        administrador: false,
+        activo: true
+    };
+    console.log('TODO OK');
+    // dataBase.query('INSERT INTO usuarios SET ?', nuevoUsuario, (error) => {
+    //     if (error) {
+    //         console.log(colors.red('[ERROR] Wrong query.', error));
+    //         res.json('Error al crear el usuario.');
+    //         res.status(401);
+    //     } else {
+    //         console.log(colors.green('[Success] User created.'));
+    //         res.status(201);
+    //         res.json(nuevoUsuario);
+    //     }
+    // });
 });
 
 // Creo un Administrador.
