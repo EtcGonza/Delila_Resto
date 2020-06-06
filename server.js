@@ -14,12 +14,11 @@ const dataBase = mysql.createConnection({
 
 dataBase.connect((error) => {
     if (!error) {
-        console.log(colors.green('[Success] DB CONNECTED.'));
+        console.log(colors.green('[Success] Database connected.'));
     } else {
-        console.log(colors.red('[WARNING] ERROR IN DB.'));
+        console.log(colors.red('[ERROR] Problem connecting database.'));
     }
 });
-// const dataBase = mysql();
 
 // const jwt = require('jsonwebtoken');
 // const firma = 'I am batman';
@@ -27,92 +26,10 @@ dataBase.connect((error) => {
 const bodyParser = require('body-parser');
 server.use(bodyParser.json());
 
-const productos = [{
-        id: 1,
-        titulo: 'Hamburguesa',
-        precio: 432,
-        activo: true
-    },
-    {
-        id: 2,
-        titulo: 'Tallerines',
-        precio: 180,
-        activo: true
-    },
-    {
-        id: 3,
-        titulo: 'Shawarma',
-        precio: 280,
-        activo: true
-    },
-    {
-        id: 4,
-        titulo: 'Ramen',
-        precio: 350,
-        activo: true
-    }
-];
-
-const usuarios = [{
-        id: 1,
-        nombre: "Gonzalo",
-        apellido: "Etchegaray",
-        email: "xetchegaray@gmail.com",
-        celular: 341349691,
-        direccion: "Presidente Roca 1566",
-        contrasenia: "0000000000",
-        administrador: false,
-        activo: true
-    },
-    {
-        id: 2,
-        nombre: "Nancy",
-        apellido: "Garcia",
-        email: "Nancy@gmail.com",
-        celular: 341349691,
-        direccion: "Presidente Roca 1566",
-        contrasenia: "0000000000",
-        administrador: false,
-        activo: true
-    },
-    {
-        id: 3,
-        nombre: "Leandro",
-        apellido: "Moyano",
-        email: "Leandro@gmail.com",
-        celular: 341349691,
-        direccion: "Tucuman 1060",
-        contrasenia: "0000000000",
-        administrador: false,
-        activo: true
-    },
-    {
-        id: 4,
-        nombre: "Matias",
-        apellido: "Moyano",
-        email: "Matias@gmail.com",
-        celular: 341349691,
-        direccion: "San juan 750",
-        contrasenia: "0000000000",
-        administrador: false,
-        activo: true
-    },
-    {
-        id: 5,
-        nombre: "Ramon",
-        apellido: "Etchegaray",
-        email: "Ramon@gmail.com",
-        celular: 341349691,
-        direccion: "3 de febrero 700",
-        contrasenia: "0000000000",
-        administrador: false,
-        activo: true
-    },
-];
-
 // ENDPOINTS USUARIOS
+// Obtengo todos los usuarios ACTIVOS.
 server.get('/usuarios', (req, res) => {
-    dataBase.query("SELECT * FROM usuarios WHERE activo = 1", (error, usuariosActivos) => {
+    dataBase.query("SELECT * FROM usuarios WHERE activo = true AND administrador = false", (error, usuariosActivos) => {
         if (error) {
             console.log(colors.red('[ERROR] Wrong query.'));
             res.json('Error al obtener usuarios.');
@@ -125,7 +42,23 @@ server.get('/usuarios', (req, res) => {
     });
 });
 
-server.post('/usuarios/crear', (req, res) => {
+// Obtengo todos los administradores ACTIVOS.
+server.get('/usuarios/administradores', (req, res) => {
+    dataBase.query("SELECT * FROM usuarios WHERE activo = true AND administrador = true", (error, administradoresActivos) => {
+        if (error) {
+            console.log(colors.red('[ERROR] Wrong query.'));
+            res.json('Error al obtener administradores.');
+            res.status(401);
+        } else {
+            console.log(colors.green('[Success] Select administradores.'));
+            console.log(colors.blue(administradoresActivos));
+            res.json(administradoresActivos);
+        }
+    });
+});
+
+// Creo un usuario.
+server.post('/usuarios/crearUsuario', (req, res) => {
 
     if (!req.body) {
         return res.status(409).send("El body esta vacio!");
@@ -143,7 +76,7 @@ server.post('/usuarios/crear', (req, res) => {
             activo: true
         };
 
-        dataBase.query('INSERT INTO usuarios SET ?', nuevoUsuario, (error, result) => {
+        dataBase.query('INSERT INTO usuarios SET ?', nuevoUsuario, (error) => {
             if (error) {
                 console.log(colors.red('[ERROR] Wrong query.', error));
                 res.json('Error al crear el usuario.');
@@ -157,6 +90,40 @@ server.post('/usuarios/crear', (req, res) => {
     }
 });
 
+// Creo un Administrador.
+server.post('/usuarios/crearAdministrador', (req, res) => {
+
+    if (!req.body) {
+        return res.status(409).send("El body esta vacio!");
+    } else {
+
+        const nuevoUsuario = {
+            id_usuario: null,
+            nombre: req.body.nombre,
+            apellido: req.body.apellido,
+            email: req.body.email,
+            celular: req.body.celular,
+            direccion: req.body.direccion,
+            contrasenia: req.body.contrasenia,
+            administrador: true,
+            activo: true
+        };
+
+        dataBase.query('INSERT INTO usuarios SET ?', nuevoUsuario, (error) => {
+            if (error) {
+                console.log(colors.red('[ERROR] Wrong query.', error));
+                res.json('Error al crear el administrador.');
+                res.status(401);
+            } else {
+                console.log(colors.green('[Success] Admin created.'));
+                res.status(201);
+                res.json(nuevoUsuario);
+            }
+        });
+    }
+});
+
+// Elimino un usuario.
 server.delete('/usuarios/delete/:idUsuario', (req, res) => {
     const idUsuario = req.params.idUsuario;
 
@@ -175,24 +142,28 @@ server.delete('/usuarios/delete/:idUsuario', (req, res) => {
     });
 });
 
-server.put('/usuarios/actualizar/idUsuario', (req, res) => {
+// Actualizo campo de usuarios.
+server.put('/usuarios/actualizar/:idUsuario', (req, res) => {
     if (!req.body) {
         return res.status(409).send("El body esta vacio!");
+    } else {
+        const idUsuario = req.params.idUsuario;
+
+        dataBase.query('UPDATE usuarios set ? WHERE id_usuario = ?', [req.body, idUsuario], (error) => {
+            if (error) {
+                console.log(colors.red('[ERROR] Wrong query or id_usuario'));
+                res.status(400).send({
+                    message: 'Wrong query or id_usuario'
+                });
+            } else {
+                console.log(colors.green('[Success] User updated successfully.'));
+                res.send({
+                    message: 'User updated successfully.'
+                });
+            }
+        });
+
     }
-
-    const usuarioEncontrado = usuarios.find(usuario => usuario.id === idUsuario);
-    const keys = Object.keys(req.body);
-
-    console.log(colors.green('Mis keys:', keys));
-
-    keys.forEach(key => {
-        usuarioEncontrado[key] = request.body[key];
-    });
-
-    console.log(colors.green('Usuario actualizado correctamente.'.green, usuarioEncontrado));
-
-    res.status(200);
-    res.json(usuarioEncontrado);
 });
 
 server.post('/usuarios/login', (req, res) => {
@@ -222,60 +193,94 @@ server.post('/usuarios/login', (req, res) => {
 
 // ENDPOINTS PRODUCTOS
 server.get('/productos', (req, res) => {
-    const productoValidos = productos.filter(producto => producto.activo === true);
-    res.json(productoValidos);
+    dataBase.query("SELECT * FROM productos WHERE activo = true", (error, productosActivos) => {
+        if (error) {
+            console.log(colors.red('[ERROR] Wrong query.'));
+            res.send({
+                message: 'Error al obtener productos.',
+                status: 401
+            });
+        } else {
+            console.log(colors.green('[Success] Select productos.'));
+            console.log(colors.blue(productosActivos));
+            res.send({ productosActivos });
+        }
+    });
 });
 
-server.post('/productos/crear', (req, res) => {
+server.post('/productos/crearProducto', (req, res) => {
+
     if (!req.body) {
         return res.status(409).send("El body esta vacio!");
+    } else {
+
+        const nuevoProducto = {
+            titulo: req.body.titulo,
+            precio: req.body.precio,
+        };
+
+        dataBase.query('INSERT INTO productos SET ?', nuevoProducto, (error) => {
+            if (error) {
+                console.log(colors.red('[ERROR] Wrong query.', error));
+                res.send({
+                    message: 'Error al crear el producto.',
+                    status: 401
+                });
+            } else {
+                console.log(colors.green('[Success] product created.'));
+                res.send({
+                    message: 'Producto creado.',
+                    status: 201,
+                    nuevoProducto
+                });
+            }
+        });
     }
-
-    const nuevoProducto = {
-        id: 1,
-        titulo: req.body.titulo,
-        precio: req.body.precio
-    };
-
-    productos.push(nuevoProducto);
-
-    res.status(200);
-    res.json(nuevoProducto);
 });
 
 server.delete('/productos/delete/:idProducto', (req, res) => {
-    const idProducto = parseInt(req.params.idProducto);
-    const productoEncontrado = productos.find(producto => producto.id === idProducto);
+    const idProducto = req.params.idProducto;
 
-    if (productoEncontrado) {
-        productoEncontrado.activo = false;
-        res.status(200);
-        res.json('Producto eliminado');
-    } else {
-        res.status(200);
-        res.json('No se pudo eliminar al Usuario');
-    }
+    dataBase.query('UPDATE productos SET activo = false WHERE id_producto = ?', idProducto, (error, data) => {
+        if (error) {
+            console.log(colors.red('[ERROR] Wrong query.', error));
+            res.send({
+                message: 'Wrong query or id_producto',
+                status: 404
+            });
+        } else {
+            console.log(colors.green('[Success] Usuario eliminado.'));
+            res.send({
+                message: 'Producto deleted successfully.',
+                status: 200
+            });
+        }
+    });
 
 });
 
-server.put('/productos/actualizar/idProducto', (req, res) => {
+server.put('/productos/actualizar/:idProducto', (req, res) => {
     if (!req.body) {
         return res.status(409).send("El body esta vacio!");
+    } else {
+        const idProducto = req.params.idProducto;
+
+        dataBase.query('UPDATE productos set ? WHERE id_producto = ?', [req.body, idProducto], (error) => {
+            if (error) {
+                console.log(colors.red('[ERROR] Wrong query or id_product'));
+                res.send({
+                    message: 'Wrong query or id_product',
+                    status: 400
+                });
+            } else {
+                console.log(colors.green('[Success] Product updated successfully.'));
+                res.send({
+                    message: 'Product updated successfully.',
+                    status: 200
+                });
+            }
+        });
     }
-
-    const productoEncontrado = productos.find(producto => producto.id === idProducto);
-    const keys = Object.keys(req.body);
-
-    console.log('Mis Keys: '.green, keys);
-
-    keys.forEach(key => {
-        productoEncontrado[key] = request.body[key];
-    });
-
-    console.log('[PUT] Producto actualizado correctamente.'.green, productoEncontrado);
-
-    res.status(200);
-    res.json(productoEncontrado);
 });
 
 // Funciones
