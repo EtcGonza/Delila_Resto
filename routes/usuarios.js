@@ -37,21 +37,26 @@ server.get('/usuarios/administradores', (req, res) => {
 });
 
 // Creo un usuario.
-server.post('/usuarios/crearUsuario', middlewares.emailsDuplicados, (req, res) => {
+server.post('/usuarios/crearUsuario', middlewares.emailsDuplicados, async(req, res) => {
 
     const nuevoUsuario = {
-        id_usuario: null,
         nombre: req.body.nombre,
         apellido: req.body.apellido,
         email: req.body.email,
         celular: req.body.celular,
         direccion: req.body.direccion,
         contrasenia: req.body.contrasenia,
-        administrador: false,
-        activo: true
+        activo: true,
+        administrador: false
     };
-    console.log('TODO OK');
-    // dataBase.query('INSERT INTO usuarios SET ?', nuevoUsuario, (error) => {
+
+    const usuarioDB = await dataBase.Usuario.create(nuevoUsuario);
+    console.log(usuarioDB);
+
+    // dataBase.query('INSERT INTO usuarios (nombre, apellido, email, celular,direccion, contrasenia) VALUES (?,?,?,?,?,?)', { replacements: [nuevoUsuario] });
+
+
+    // , (error) => {
     //     if (error) {
     //         console.log(colors.red('[ERROR] Wrong query.', error));
     //         res.json('Error al crear el usuario.');
@@ -61,7 +66,7 @@ server.post('/usuarios/crearUsuario', middlewares.emailsDuplicados, (req, res) =
     //         res.status(201);
     //         res.json(nuevoUsuario);
     //     }
-    // });
+    // }
 });
 
 // Creo un Administrador.
