@@ -1,51 +1,60 @@
-// const mysql = require('mysql2');
-const colors = require('colors');
 const { Sequelize } = require('sequelize');
+const colors = require('colors');
 
 const sequelizeDB = new Sequelize('delila_resto', 'root', '', {
     host: 'localhost',
-    dialect: 'mysql'
+    dialect: 'mysql',
+    define: {
+        timestamps: false,
+    },
+    logging: false
 });
 
-sequelizeDB.authenticate().then(() => {
-    console.log(colors.green('[Success] Database connected.'));
-}).catch((error) => {
-    console.log(colors.red('[ERROR] Problem connecting database.', error));
-});
+sequelizeDB.authenticate()
+    .then(() => console.log(colors.green('Database connected.')))
+    .catch((error) => console.log(colors.red('Error in data base', error)));
 
-const Usuario = sequelizeDB.define('Usuario', {
-    nombre: {
-        type: String,
-        allowNull: false
-    },
-    apellido: {
-        type: String,
-        allowNull: false
-    },
-    email: {
-        type: String,
-        allowNull: false
-    },
-    celular: {
-        type: String,
-        allowNull: false
-    },
-    direccion: {
-        type: String,
-        allowNull: false
-    },
-    contrasenia: {
-        type: String,
-        allowNull: false
-    },
-    administrador: {
-        type: Boolean,
-        allowNull: false
-    },
-    activo: {
-        type: Boolean,
-        allowNull: false
-    },
-});
 
-module.exports = { sequelizeDB, Usuario };
+// const Usuario = sequelizeDB.define('Usuario', {
+//     id_usuario: {
+//         type: Sequelize.INTEGER,
+//         allowNull: false,
+//         unique: true,
+//         primaryKey: true,
+//         autoIncrement: true
+//     },
+//     nombre: {
+//         type: Sequelize.STRING,
+//         allowNull: false
+//     },
+//     apellido: {
+//         type: Sequelize.STRING,
+//         allowNull: false
+//     },
+//     email: {
+//         type: Sequelize.STRING,
+//         allowNull: false
+//     },
+//     celular: {
+//         type: Sequelize.STRING,
+//         allowNull: false
+//     },
+//     direccion: {
+//         type: Sequelize.STRING,
+//         allowNull: false
+//     },
+//     contrasenia: {
+//         type: Sequelize.STRING,
+//         allowNull: false,
+//     },
+//     administrador: {
+//         type: Sequelize.BOOLEAN,
+//         allowNull: false
+//     },
+//     activo: {
+//         type: Sequelize.BOOLEAN,
+//         allowNull: false
+//     }
+// });
+
+module.exports = { sequelizeDB };
