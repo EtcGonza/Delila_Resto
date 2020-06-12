@@ -6,101 +6,79 @@ const firma = 'I am batman';
 
 const dataBase = require('../config/dataBase');
 
-const middlewares = require('../middlewares/usuarios_middlewares');
+const userMiddleware = require('../middlewares/usuarios_middlewares');
+const generalMiddleware = require('../middlewares/generales_middlewares');
 
-// ENDPOINTS DE USUARIOS
+// * ENDPOINTS DE USUARIOS
 // Obtengo todos los usuarios ACTIVOS.
 server.get('/usuarios', async(req, res) => {
 
-    const usuariosActivos = await dataBase.sequelizeDB.query("SELECT * FROM usuarios WHERE activo = true", { type: dataBase.sequelizeDB.QueryTypes.SELECT });
+    const usuariosActivos = await dataBase.UsuarioModel.findAll({ where: { activo: true } }).catch(error => {
+        res.send({
+            status: 'ERROR',
+            message: 'No existen usuarios activos o hubo no se pudieron obtener.',
+            error
+        });
+    });
 
-    if (usuariosActivos.length > 0) {
-        res.send({
-            status: 'OK',
-            cantidad_Usuarios: usuariosActivos.length,
-            usuariosActivos
-        });
-    } else {
-        res.send({
-            status: 'OK',
-            message: 'No existen usuarios activos.'
-        });
-    }
+    res.send({
+        status: 'OK',
+        usuarios_cant: usuariosActivos.length,
+        usuarios_activos: usuariosActivos
+    });
+
 });
 
 // Creo un usuario.
-server.post('/usuarios/crearUsuario', [middlewares.checkBody, middlewares.emailsDuplicados], async(req, res) => {
-
-    dataBase.sequelizeDB.query("INSERT INTO usuarios (nombre, apellido, email, celular, direccion, contrasenia, administrador, activo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", {
-        replacements: [req.body.nombre,
-            req.body.apellido,
-            req.body.email,
-            req.body.celular,
-            req.body.direccion,
-            req.body.contrasenia,
-            false,
-            true
-        ],
-        type: dataBase.sequelizeDB.QueryTypes.INSERT
-    }).then(() => {
-        res.send({
-            message: 'Usuario creado exitosamente.',
-            status: 201
-        });
-    }).catch((error) => {
+server.post('/usuarios/crearUsuario', [generalMiddleware.checkBody, userMiddleware.validarBodyType, userMiddleware.emailsDuplicados], async(req, res) => {
+    const nuevoUsuario = await dataBase.UsuarioModel.create(req.body).catch(error => {
         res.send({
             message: 'No se pudo crear el usuario.',
             error
         });
     });
 
+    res.send({
+        message: 'Nuevo usuario creado.',
+        nuevo_usuario: nuevoUsuario
+    });
 });
 
 // Elimino un usuario.
-server.delete('/usuarios/delete/:idUsuario', (req, res) => {
-
-    dataBase.sequelizeDB.query("DELETE FROM usuarios WHERE id_usuario = ?", { replacements: [req.params.idUsuario] })
-        .then((resultados) => {
-            if (resultados[0].affectedRows == 1) {
-                res.send({
-                    status: 200,
-                    message: 'Usuario eliminado satisfactoriamente.',
-                });
-            } else {
-                res.send({
-                    status: 200,
-                    message: 'No existe un usuario con ese ID.',
-                });
-            }
-        })
-
-    .catch((error) => {
+server.delete('/usuarios/:id', generalMiddleware.checkIdParam, async(req, res) => {
+    await dataBase.UsuarioModel.destroy({ where: { id_usuario: req.params.id, administrador: false } }).catch(error => {
         res.send({
-            status: 400,
-            message: 'Error de SQL',
+            status: 'ERROR',
+            message: 'El ID ingresado corresponde a un administrador, no existe o hubo un problema al eliminar el usuario.',
             error
         });
+    });
+
+    res.send({
+        status: 'OK',
+        message: 'Usuario eliminado.'
     });
 });
 
 // Actualizo campo de usuarios.
-server.put('/usuarios/actualizar/:idUsuario', (req, res) => {
-    console.log('Campos a actualizar', req.body);
-
-    dataBase.sequelizeDB.query("UPDATE usuarios SET nombre = ?, apellido = ?, email = ?, celular = ?, direccion = ?, contrasenia = ?,  WHERE id_usuario = ?", { replacements: [req.body.nombre, req.body.apellido, req.body.email, req.body.celular, req.body.direccion, req.body.contrasenia, req.params.idUsuario], type: dataBase.sequelizeDB.QueryTypes.UPDATE })
-        .then((resultados) => {
-            console.log("RESULTADOS", resultados);
-            res.send({
-                message: 'Then',
-                resultados
-            })
-        }).catch((error) => {
-            console.log("ERRORES", error);
+server.put('/usuarios/actualizar/:id', [generalMiddleware.checkIdParam, userMiddleware.validarBodyType, generalMiddleware.checkBody], async(req, res) => {
+    await dataBase.UsuarioModel.update(req.body, { where: { id_usuario: req.params.id } }).catch(error => {
+        res.send({
+            status: 'ERROR',
+            message: 'El ID ingresado no existe o hubo un problema al actualizar el usuario.',
+            error
         });
+    });
+
+    res.send({
+        status: 'OK',
+        message: 'Usuario eliminado.',
+        campos_actualizados: req.body
+    });
 });
 
 // Login de usuario.
-server.post('/usuarios/login', [middlewares.checkBody, middlewares.validarLogin], async(req, res) => {
+server.post('/usuarios/login', [generalMiddleware.checkBody, userMiddleware.validarLogin], async(req, res) => {
     const token = jwt.sign({ usuario_logueado: res.locals.usuarioValido }, firma);
 
     res.send({
@@ -109,10 +87,9 @@ server.post('/usuarios/login', [middlewares.checkBody, middlewares.validarLogin]
     });
 });
 
-// ENPODINTS DE ADMINISTRADOR
+// * ENPODINTS DE ADMINISTRADOR
 // Obtengo todos los administradores ACTIVOS.
 server.get('/usuarios/administradores', async(req, res) => {
-
     const administradoresActivos = await dataBase.query("SELECT * usuarios WHERE activo = true", { type: sequelize.QueryTypes.SELECT });
 
     if (administradoresActivos.length > 0) {
@@ -130,8 +107,7 @@ server.get('/usuarios/administradores', async(req, res) => {
 });
 
 // Creo un Administrador.
-server.post('/usuarios/crearAdministrador', [middlewares.checkBody, middlewares.emailsDuplicados], async(req, res) => {
-
+server.post('/usuarios/crearAdministrador', [generalMiddleware.checkBody, userMiddleware.emailsDuplicados], async(req, res) => {
     const nuevoUsuario = {
         id_usuario: 0,
         nombre: req.body.nombre,

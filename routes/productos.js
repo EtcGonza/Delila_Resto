@@ -1,101 +1,73 @@
 const express = require('express');
 const server = express();
 
-const colors = require('colors');
 const dataBase = require('../config/dataBase');
 
-const middlewares = require('../middlewares/usuarios_middlewares');
+const generalMiddleware = require('../middlewares/generales_middlewares');
 
 // Obtengo los productos ACTIVOS.
 server.get('/productos', async(req, res) => {
-
-    const productosActivos = await dataBase.sequelizeDB.query("SELECT * FROM productos WHERE activo = true", { type: dataBase.sequelizeDB.QueryTypes.SELECT });
-
-    if (productosActivos.length > 0) {
+    const productosActivos = await dataBase.productoModel.findAll({ where: { activo: true } }).catch(error => {
         res.send({
-            status: 'OK',
-            cantidad_Usuarios: productosActivos.length,
-            productosActivos
+            status: 'ERROR',
+            message: 'No existen productos activos o no se pudieron obtener.',
+            error
         });
-    } else {
-        res.send({
-            status: 'OK',
-            message: 'No existen productos activos.'
-        });
-    }
+    });
 
+    res.send({
+        status: 'OK',
+        productos_cant: productosActivos.length,
+        productos_activos: productosActivos
+    });
 });
 
 // Creo un nuevo producto.
-server.post('/productos/crearProducto', middlewares.checkBody, (req, res) => {
-
-    dataBase.sequelizeDB.query("INSERT INTO productos (titulo, precio) VALUES (?, ?)", {
-        replacements: [req.body.titulo, req.body.precio],
-        type: dataBase.sequelizeDB.QueryTypes.INSERT
-    }).then(() => {
-        res.send({
-            message: 'Producto creado exitosamente.',
-            status: 201
-        });
-    }).catch((error) => {
+server.post('/productos/crearProducto', generalMiddleware.checkBody, async(req, res) => {
+    const nuevoProducto = await dataBase.productoModel.create(req.body).catch(error => {
         res.send({
             message: 'No se pudo crear el producto.',
             error
         });
     });
+
+    res.send({
+        message: 'Nuevo producto creado.',
+        nuevo_producto: nuevoProducto
+    });
 });
 
 // Elimino un producto.
-server.delete('/productos/delete/:idProducto', (req, res) => {
-
-    dataBase.sequelizeDB.query("DELETE FROM productos WHERE id_producto = ?", { replacements: [req.params.idProducto] })
-        .then((resultados) => {
-            if (resultados[0].affectedRows == 1) {
-                res.send({
-                    status: 200,
-                    message: 'Producto eliminado satisfactoriamente.',
-                });
-            } else {
-                res.send({
-                    status: 200,
-                    message: 'No existe un producto con ese ID.',
-                });
-            }
-        })
-
-    .catch((error) => {
+server.delete('/productos/delete/:id', generalMiddleware.checkIdParam, async(req, res) => {
+    await dataBase.productoModel.destroy({ where: { id_producto: req.params.id } }).catch(error => {
         res.send({
-            status: 400,
-            message: 'Error de SQL',
+            status: 'ERROR',
+            message: 'El ID ingresado no corresponde a un producto o hubo un problema en la peticion.',
             error
         });
     });
 
+    res.send({
+        status: 'OK',
+        message: 'Producto eliminado.'
+    });
 });
 
 // Actualizo un producto.
-server.put('/productos/actualizar/:idProducto', (req, res) => {
-    if (!req.body) {
-        return res.status(409).send("El body esta vacio!");
-    } else {
-        const idProducto = req.params.idProducto;
-
-        dataBase.query('UPDATE productos set ? WHERE id_producto = ?', [req.body, idProducto], (error) => {
-            if (error) {
-                console.log(colors.red('[ERROR] Wrong query or id_product'));
-                res.send({
-                    message: 'Wrong query or id_product',
-                    status: 400
-                });
-            } else {
-                console.log(colors.green('[Success] Product updated successfully.'));
-                res.send({
-                    message: 'Product updated successfully.',
-                    status: 200
-                });
-            }
+server.put('/productos/actualizar/:id', [generalMiddleware.checkIdParam, generalMiddleware.checkBody], async(req, res) => {
+    await dataBase.productoModel.update(req.body, { where: { id_producto: req.params.id } }).catch(error => {
+        res.send({
+            status: 'ERROR',
+            message: 'El ID ingresado no existe o hubo un problema al actualizar el producto.',
+            error
         });
-    }
+    });
+
+    res.send({
+        status: 'OK',
+        message: 'Producto eliminado.',
+        campos_actualizados: req.body
+    });
 });
 
 module.exports = server;

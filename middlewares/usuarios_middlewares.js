@@ -1,21 +1,8 @@
 const colors = require('colors');
-
 const dataBase = require('../config/dataBase');
 
 
 // MIDDLEWARES DE USUARIO
-const checkBody = (req, res, next) => {
-    if (isEmpty(req.body)) {
-        console.log(colors.bgRed('[MIDDLEWARE] El body no puede estar vacio.'));
-        res.send({
-            message: 'El body esta vacio.',
-            status: 409
-        });
-    } else {
-        next();
-    }
-};
-
 const emailsDuplicados = async(req, res, next) => {
     const existeEmail = await checkEmailDisponible(req.body.email);
 
@@ -47,14 +34,21 @@ const validarLogin = async(req, res, next) => {
 
 };
 
+const validarBodyType = (req, res, next) => {
+    const invalidValues = validarTipos(req.body);
 
+    if (invalidValues.length > 0) {
+        console.log(colors.bgRed('[MIDDLEWARE] Valores ingresados invalidos, todos los datos deben ser strings.'));
+        res.send({
+            message: 'Valores ingresados invalidos, todos los datos deben ser strings.',
+            invalidValues
+        });
+    } else {
+        next();
+    }
+};
 
-
-// Chequeo si el objeto esta vacio.
-function isEmpty(obj) {
-    return Object.keys(obj).length === 0;
-}
-
+// FUNCIONES AUXILIARES
 // Cheque si existe algun usuario que tenga el email recibido en el body.
 async function checkEmailDisponible(userEmail) {
     const usuario = await dataBase.sequelizeDB.query("SELECT * FROM usuarios WHERE email = ?", { plain: true, replacements: [userEmail], type: dataBase.sequelizeDB.QueryTypes.SELECT });
@@ -73,10 +67,21 @@ async function validateCredenciales(bodyEmail, bodyPass) {
 
 }
 
+function validarTipos(body) {
+    const bodyValues = Object.values(body);
+    const invalidValues = [];
 
+    for (let contador = 0; contador < bodyValues.length; contador++) {
+        if (typeof bodyValues[contador] !== 'string') {
+            invalidValues.push(bodyValues[contador]);
+        }
+    }
+
+    return invalidValues;
+}
 
 module.exports = {
-    checkBody,
     emailsDuplicados,
-    validarLogin
+    validarLogin,
+    validarBodyType
 };

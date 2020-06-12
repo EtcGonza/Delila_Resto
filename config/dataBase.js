@@ -15,46 +15,70 @@ sequelizeDB.authenticate()
     .catch((error) => console.log(colors.red('Error in data base', error)));
 
 
-// const Usuario = sequelizeDB.define('Usuario', {
-//     id_usuario: {
-//         type: Sequelize.INTEGER,
-//         allowNull: false,
-//         unique: true,
-//         primaryKey: true,
-//         autoIncrement: true
-//     },
-//     nombre: {
-//         type: Sequelize.STRING,
-//         allowNull: false
-//     },
-//     apellido: {
-//         type: Sequelize.STRING,
-//         allowNull: false
-//     },
-//     email: {
-//         type: Sequelize.STRING,
-//         allowNull: false
-//     },
-//     celular: {
-//         type: Sequelize.STRING,
-//         allowNull: false
-//     },
-//     direccion: {
-//         type: Sequelize.STRING,
-//         allowNull: false
-//     },
-//     contrasenia: {
-//         type: Sequelize.STRING,
-//         allowNull: false,
-//     },
-//     administrador: {
-//         type: Sequelize.BOOLEAN,
-//         allowNull: false
-//     },
-//     activo: {
-//         type: Sequelize.BOOLEAN,
-//         allowNull: false
-//     }
-// });
+const UsuarioModel = sequelizeDB.define('Usuario', {
+    id_usuario: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        unique: true,
+        primaryKey: true,
+        autoIncrement: true
+    },
+    nombre: {
+        type: Sequelize.STRING,
+        allowNull: false
+    },
+    apellido: {
+        type: Sequelize.STRING,
+        allowNull: false
+    },
+    email: {
+        type: Sequelize.STRING,
+        allowNull: false
+    },
+    celular: {
+        type: Sequelize.STRING,
+        allowNull: false
+    },
+    direccion: {
+        type: Sequelize.STRING,
+        allowNull: false
+    },
+    contrasenia: {
+        type: Sequelize.STRING,
+        allowNull: false,
+    },
+    administrador: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+    },
+    activo: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: true
+    }
+});
 
-module.exports = { sequelizeDB };
+const productoModel = sequelizeDB.define('Producto', {
+    id_producto: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        unique: true,
+        primaryKey: true,
+        autoIncrement: true
+    },
+    titulo: {
+        type: Sequelize.STRING,
+        allowNull: false
+    },
+    precio: {
+        type: Sequelize.INTEGER,
+        allowNull: false
+    }
+});
+
+module.exports = {
+    sequelizeDB,
+    UsuarioModel,
+    productoModel
+};
