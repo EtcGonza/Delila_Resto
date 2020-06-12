@@ -1,12 +1,13 @@
 const express = require('express');
 const server = express();
-
 const dataBase = require('../config/dataBase');
 
+// - MIS MIDDLEWARES
 const generalMiddleware = require('../middlewares/generales_middlewares');
+const userMiddleware = require('../middlewares/usuarios_middlewares');
 
-// Obtengo los productos ACTIVOS.
-server.get('/productos', async(req, res) => {
+// * RECURSO PUBLICO | Obtengo los productos ACTIVOS.
+server.get('/productos', [userMiddleware.validarToken], async(req, res) => {
     const productosActivos = await dataBase.productoModel.findAll({ where: { activo: true } }).catch(error => {
         res.send({
             status: 'ERROR',
@@ -22,8 +23,8 @@ server.get('/productos', async(req, res) => {
     });
 });
 
-// Creo un nuevo producto.
-server.post('/productos/crearProducto', generalMiddleware.checkBody, async(req, res) => {
+// * RECURSO PRIVADO | Creo un nuevo producto.
+server.post('/productos', [generalMiddleware.checkBody, userMiddleware.validarToken, userMiddleware.validarPermiso], async(req, res) => {
     const nuevoProducto = await dataBase.productoModel.create(req.body).catch(error => {
         res.send({
             message: 'No se pudo crear el producto.',
@@ -37,24 +38,31 @@ server.post('/productos/crearProducto', generalMiddleware.checkBody, async(req, 
     });
 });
 
-// Elimino un producto.
-server.delete('/productos/delete/:id', generalMiddleware.checkIdParam, async(req, res) => {
-    await dataBase.productoModel.destroy({ where: { id_producto: req.params.id } }).catch(error => {
+// * RECURSO PRIVADO | Elimino un producto.
+server.delete('/productos/:id', [generalMiddleware.checkIdParam, userMiddleware.validarToken, userMiddleware.validarPermiso], async(req, res) => {
+    const productoEliminado = await dataBase.productoModel.destroy({ where: { id_producto: req.params.id } }).catch(error => {
         res.send({
             status: 'ERROR',
-            message: 'El ID ingresado no corresponde a un producto o hubo un problema en la peticion.',
+            message: 'Hubo un problema en la peticion.',
             error
         });
     });
 
-    res.send({
-        status: 'OK',
-        message: 'Producto eliminado.'
-    });
+    if (productoEliminado != 0) {
+        res.send({
+            status: 'OK',
+            message: 'Producto eliminado.'
+        });
+    } else {
+        res.send({
+            status: 'OK',
+            message: 'El ID ingresado no existe.',
+        });
+    }
 });
 
-// Actualizo un producto.
-server.put('/productos/actualizar/:id', [generalMiddleware.checkIdParam, generalMiddleware.checkBody], async(req, res) => {
+// * RECURSO PRIVADO | Actualizo un producto.
+server.put('/productos/:id', [generalMiddleware.checkIdParam, generalMiddleware.checkBody, userMiddleware.validarToken, userMiddleware.validarPermiso], async(req, res) => {
     await dataBase.productoModel.update(req.body, { where: { id_producto: req.params.id } }).catch(error => {
         res.send({
             status: 'ERROR',
@@ -65,7 +73,7 @@ server.put('/productos/actualizar/:id', [generalMiddleware.checkIdParam, general
 
     res.send({
         status: 'OK',
-        message: 'Producto eliminado.',
+        message: 'Producto actualizado.',
         campos_actualizados: req.body
     });
 });

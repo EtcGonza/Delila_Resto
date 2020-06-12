@@ -1,8 +1,10 @@
 const colors = require('colors');
 const dataBase = require('../config/dataBase');
+const jwt = require('jsonwebtoken');
+const firmaJwt = 'I am batman';
 
 
-// MIDDLEWARES DE USUARIO
+// - MIDDLEWARES DE USUARIO
 const emailsDuplicados = async(req, res, next) => {
     const existeEmail = await checkEmailDisponible(req.body.email);
 
@@ -16,22 +18,6 @@ const emailsDuplicados = async(req, res, next) => {
         console.log(colors.bgGreen('[MIDDLEWARE] El email esta disponible.'));
         next();
     }
-};
-
-const validarLogin = async(req, res, next) => {
-    const usuarioValido = await validateCredenciales(req.body.email, req.body.contrasenia);
-
-    if (usuarioValido) {
-        console.log(colors.bgGreen('[MIDDLEWARE] Login exitoso.'));
-        res.locals.usuarioValido = usuarioValido;
-        next();
-    } else {
-        console.log(colors.bgRed('[MIDDLEWARE] Email o contraseña invalido o no existe.'));
-        res.send({
-            message: 'Email o contraseña invalido o no existe.'
-        });
-    }
-
 };
 
 const validarBodyType = (req, res, next) => {
@@ -48,23 +34,48 @@ const validarBodyType = (req, res, next) => {
     }
 };
 
-// FUNCIONES AUXILIARES
+const validarToken = (req, res, next) => {
+
+    if (!req.body.token) {
+        console.log(colors.bgRed('[MIDDLEWARE] Para acceder a este recurso necesita un token valido.'));
+        res.send({
+            message: 'Para acceder a este recurso necesita un token valido.',
+        });
+    } else {
+
+        jwt.verify(req.body.token, firmaJwt, (error, decoded) => {
+
+            if (error) {
+                console.log(colors.bgRed('[MIDDLEWARE] El token ingresado no es valido/confiable o expiro.'));
+                res.send({
+                    message: 'El token ingresado no es valido/confiable o expiro.',
+                });
+            } else {
+                console.log(colors.bgGreen('[MIDDLEWARE] Token valido.'));
+                res.locals.payloadUsuario = decoded.usuario_logueado;
+                next();
+            }
+        });
+    }
+};
+
+const validarPermiso = (req, res, next) => {
+    if (esAdministrador(res.locals.payloadUsuario)) {
+        console.log(colors.bgGreen('[MIDDLEWARE] Es administrador.'));
+        next();
+    } else {
+        console.log(colors.bgRed('[MIDDLEWARE] No tiene permisos para acceder a este recurso.'));
+        res.send({
+            message: 'No tiene permisos para acceder a este recurso.',
+        });
+    }
+};
+
+// - FUNCIONES AUXILIARES
 // Cheque si existe algun usuario que tenga el email recibido en el body.
 async function checkEmailDisponible(userEmail) {
     const usuario = await dataBase.sequelizeDB.query("SELECT * FROM usuarios WHERE email = ?", { plain: true, replacements: [userEmail], type: dataBase.sequelizeDB.QueryTypes.SELECT });
     return usuario;
-}
-
-// Valida las credenciales para un login
-async function validateCredenciales(bodyEmail, bodyPass) {
-    const usuarioDB = await dataBase.sequelizeDB.query("SELECT * FROM usuarios WHERE email = ? LIMIT 1", { plain: true, replacements: [bodyEmail], type: dataBase.sequelizeDB.QueryTypes.SELECT });
-
-    if ((usuarioDB.contrasenia == bodyPass && usuarioDB.email == bodyEmail)) {
-        return usuarioDB;
-    } else {
-        return false;
-    }
-
 }
 
 function validarTipos(body) {
@@ -80,8 +91,13 @@ function validarTipos(body) {
     return invalidValues;
 }
 
+function esAdministrador(usuario) {
+    return (usuario.administrador === true);
+}
+
 module.exports = {
     emailsDuplicados,
-    validarLogin,
-    validarBodyType
+    validarBodyType,
+    validarToken,
+    validarPermiso
 };
