@@ -15,16 +15,16 @@ const usuarioController = require('../controllers/usuario_controller');
 
 
 // * RECURSO PRIVADO | Obtengo todos los usuarios ACTIVOS.
-server.get('/usuarios', userMiddleware.validarToken, userMiddleware.validarPermiso, usuarioController.getUsuarios);
+server.get('/usuarios', [userMiddleware.validarToken, userMiddleware.validarPermiso], usuarioController.getUsuarios);
 
 // * RECURSO PUBLICO | Creo un usuario.
 server.post('/usuarios', [generalMiddleware.checkBody, userMiddleware.validarBodyType, userMiddleware.emailsDuplicados], usuarioController.crearUsuario);
 
-// * RECURSO PUBLICO | Elimino un usuario.
-server.delete('/usuarios/:id', generalMiddleware.checkIdParam, usuarioController.borrarUsuario);
+// * RECURSO PRIVADO | Elimino un usuario.
+server.delete('/usuarios/:id', [generalMiddleware.checkIdParam, userMiddleware.validarToken], usuarioController.borrarUsuario);
 
-//  * RECURSO PUBLICO | Actualizo campo de usuarios.
-server.put('/usuarios/:id', [generalMiddleware.checkIdParam, generalMiddleware.checkBody, userMiddleware.validarBodyType], usuarioController.actualizarUsuario);
+//  * RECURSO PRIVADO | Actualizo campo de usuarios.
+server.put('/usuarios/:id', [generalMiddleware.checkIdParam, generalMiddleware.checkBody, userMiddleware.validarBodyType, userMiddleware.validarToken], usuarioController.actualizarUsuario);
 
 // * RECURSO PUBLICO | Login de usuario.
 server.post('/usuarios/login', [generalMiddleware.checkBody], usuarioController.loginUsuario);

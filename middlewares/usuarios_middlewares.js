@@ -77,19 +77,21 @@ async function checkEmailDisponible(userEmail) {
     return usuario;
 }
 
+// Valido todos los tipos que recibi en el body.
 function validarTipos(body) {
     const bodyValues = Object.values(body);
     const invalidValues = [];
 
-    for (let contador = 0; contador < bodyValues.length; contador++) {
-        if (typeof bodyValues[contador] !== 'string') {
-            invalidValues.push(bodyValues[contador]);
+    bodyValues.find(element => {
+        if (typeof element !== 'string') {
+            invalidValues.push(element);
         }
-    }
+    });
 
     return invalidValues;
 }
 
+// Devuelvo si el usuario es administrador o no.
 function esAdministrador(usuario) {
     return (usuario.administrador === true);
 }
