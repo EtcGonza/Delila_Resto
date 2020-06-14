@@ -8,8 +8,8 @@ const bodyParser = require('body-parser');
 server.use(bodyParser.json());
 
 // Importo mis rutas.
-server.use(require('./routes/usuarios'));
-server.use(require('./routes/productos'));
+server.use(require('./routes/usuario_routes'));
+server.use(require('./routes/productos_routes'));
 
 server.listen(serverPort, () => {
     console.log(colors.green('----------------'));
