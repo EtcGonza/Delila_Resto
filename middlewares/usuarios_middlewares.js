@@ -3,7 +3,6 @@ const dataBase = require('../config/dataBase');
 const jwt = require('jsonwebtoken');
 const firmaJwt = 'I am batman';
 
-
 // - MIDDLEWARES DE USUARIO
 const emailsDuplicados = async(req, res, next) => {
     const existeEmail = await checkEmailDisponible(req.body.email);

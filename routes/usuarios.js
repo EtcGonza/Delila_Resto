@@ -109,7 +109,9 @@ server.post('/usuarios/login', [generalMiddleware.checkBody], async(req, res) =>
     }
 });
 
-// - ENPODINTS DE ADMINISTRADOR 
+// - ////////////////////////// - //
+// - ENPODINTS DE ADMINISTRADOR - //
+// - ////////////////////////// - //
 // * RECURSO PARA DESARROLLO | Obtengo todos los administradores ACTIVOS.
 server.get('/usuarios/administradores', async(req, res) => {
     const administradoresActivos = await dataBase.query("SELECT * usuarios WHERE activo = true", { type: sequelize.QueryTypes.SELECT });
