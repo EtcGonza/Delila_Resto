@@ -77,8 +77,72 @@ const productoModel = sequelizeDB.define('Producto', {
     }
 });
 
+const ordenModel = sequelizeDB.define('Orden', {
+    id_orden: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        unique: true,
+        primaryKey: true,
+        autoIncrement: true
+    },
+    id_usuario: {
+        type: Sequelize.INTEGER,
+        allowNull: false
+    },
+    precio_total: {
+        type: Sequelize.INTEGER,
+        allowNull: false
+    },
+    metodo_pago: {
+        type: Sequelize.ENUM,
+        values: ['Efectivo', 'Tarjeta'],
+        allowNull: false
+    },
+    estado: {
+        type: Sequelize.ENUM,
+        values: ['Nuevo', 'Confirmado', 'Preparando', 'Enviando', 'Entregado'],
+        allowNull: false
+    },
+    fecha_creado: {
+        type: Sequelize.DATE,
+        allowNull: false
+    },
+    ultima_actualizacion: {
+        type: Sequelize.DATE,
+        allowNull: false
+    }
+});
+
+const productosOrdenModel = sequelizeDB.define('ProductosOrden', {
+    id_prodOrdenes: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        unique: true,
+        primaryKey: true,
+        autoIncrement: true
+    },
+    id_orden: {
+        type: Sequelize.INTEGER,
+        allowNull: false
+    },
+    id_producto: {
+        type: Sequelize.INTEGER,
+        allowNull: false
+    },
+    producto_cantidad: {
+        type: Sequelize.INTEGER,
+        allowNull: false
+    },
+    total_producto: {
+        type: Sequelize.INTEGER,
+        allowNull: false
+    }
+});
+
 module.exports = {
     sequelizeDB,
     UsuarioModel,
-    productoModel
+    productoModel,
+    ordenModel,
+    productosOrdenModel
 };
