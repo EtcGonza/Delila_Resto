@@ -10,6 +10,7 @@ server.use(bodyParser.json());
 // Importo mis rutas.
 server.use(require('./routes/usuario_routes'));
 server.use(require('./routes/productos_routes'));
+server.use(require('./routes/orden_route'));
 
 server.listen(serverPort, () => {
     console.log(colors.green('----------------'));

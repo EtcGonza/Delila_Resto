@@ -7,7 +7,8 @@ const sequelizeDB = new Sequelize('delila_resto', 'root', '', {
     define: {
         timestamps: false,
     },
-    logging: false
+    logging: false,
+    typeValidation: true
 });
 
 sequelizeDB.authenticate()
@@ -77,7 +78,7 @@ const productoModel = sequelizeDB.define('Producto', {
     }
 });
 
-const ordenModel = sequelizeDB.define('Orden', {
+const ordenModel = sequelizeDB.define('Ordenes', {
     id_orden: {
         type: Sequelize.INTEGER,
         allowNull: false,
@@ -113,17 +114,19 @@ const ordenModel = sequelizeDB.define('Orden', {
     }
 });
 
-const productosOrdenModel = sequelizeDB.define('ProductosOrden', {
+const productosOrdenModel = sequelizeDB.define('ProductosOrdenes', {
     id_prodOrdenes: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        unique: true,
+        unique: false,
         primaryKey: true,
         autoIncrement: true
     },
     id_orden: {
         type: Sequelize.INTEGER,
-        allowNull: false
+        allowNull: false,
+        unique: false,
+        // references: 'ordenes',
     },
     id_producto: {
         type: Sequelize.INTEGER,
@@ -138,6 +141,9 @@ const productosOrdenModel = sequelizeDB.define('ProductosOrden', {
         allowNull: false
     }
 });
+
+ordenModel.hasMany(productosOrdenModel, { foreignKey: 'id_orden' });
+productosOrdenModel.belongsTo(ordenModel, { foreignKey: 'id_orden' });
 
 module.exports = {
     sequelizeDB,

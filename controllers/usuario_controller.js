@@ -67,29 +67,20 @@ const usuario_controllers = {
 
         res.send({
             status: 'OK',
-            message: 'Usuario eliminado.',
+            message: 'Usuario actualizado.',
             campos_actualizados: req.body
         });
     },
 
     loginUsuario: async(req, res) => {
+        const usuario = res.locals.usuarioValido;
+        const token = await jwt.sign({ usuario_logueado: usuario }, firmaJwt, { expiresIn: new Date().getTime() + 30000 * 1000 });
 
-        const { email, contrasenia } = req.body;
+        res.send({
+            message: 'Login exitoso.',
+            token
+        });
 
-        const usuarioValido = await dataBase.UsuarioModel.findOne({ where: { email: email, contrasenia: contrasenia } });
-
-        if (usuarioValido) {
-            const token = jwt.sign({ usuario_logueado: usuarioValido }, firmaJwt, { expiresIn: new Date().getTime() + 30000 * 1000 });
-
-            res.send({
-                message: 'Login exitoso.',
-                token
-            });
-        } else {
-            res.send({
-                message: 'Email/contraseña no valido.',
-            });
-        }
     }
 };
 

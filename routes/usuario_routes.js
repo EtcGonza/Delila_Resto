@@ -27,7 +27,7 @@ server.delete('/usuarios/:id', [generalMiddleware.checkIdParam, userMiddleware.v
 server.put('/usuarios/:id', [generalMiddleware.checkIdParam, generalMiddleware.checkBody, userMiddleware.validarBodyType, userMiddleware.validarToken], usuarioController.actualizarUsuario);
 
 // * RECURSO PUBLICO | Login de usuario.
-server.post('/usuarios/login', [generalMiddleware.checkBody], usuarioController.loginUsuario);
+server.post('/usuarios/login', [generalMiddleware.checkBody, userMiddleware.buscarUsuario], usuarioController.loginUsuario);
 
 // - ////////////////////////// - //
 // - ENPODINTS DE ADMINISTRADOR - //

@@ -58,6 +58,20 @@ const validarToken = (req, res, next) => {
     }
 };
 
+const buscarUsuario = async(req, res, next) => {
+    const usuario = await buscarUsuarioDB(req.body.email, req.body.contrasenia);
+    if (usuario) {
+        console.log(colors.bgGreen('[MIDDLEWARE] Credenciales correctas.'));
+        res.locals.usuarioValido = usuario;
+        next();
+    } else {
+        console.log(colors.bgRed('[MIDDLEWARE] Email/ contrasenia no valido.'));
+        res.send({
+            message: 'Email/contraseña no valido.',
+        });
+    }
+};
+
 const validarPermiso = (req, res, next) => {
     if (esAdministrador(res.locals.payloadUsuario)) {
         console.log(colors.bgGreen('[MIDDLEWARE] Es administrador.'));
@@ -96,9 +110,17 @@ function esAdministrador(usuario) {
     return (usuario.administrador === true);
 }
 
+async function buscarUsuarioDB(email, contrasenia) {
+    const usuarioDb = await dataBase.UsuarioModel.findOne({ where: { email: email, contrasenia: contrasenia } });
+    // Este usuarioDb puede contener el usuario o no contener nada
+    // si no contiene un usuario es porque alguna credencial (pass, email) no es valida.
+    return usuarioDb;
+}
+
 module.exports = {
     emailsDuplicados,
     validarBodyType,
     validarToken,
-    validarPermiso
+    validarPermiso,
+    buscarUsuario
 };
