@@ -5,7 +5,7 @@ const firmaJwt = 'I am batman';
 // - Controladores de Usuario.
 const usuario_controllers = {
     getUsuarios: async(req, res) => {
-        const usuariosActivos = await dataBase.UsuarioModel.findAll({ where: { activo: true } }).catch(error => {
+        const usuarios = await dataBase.UsuarioModel.findAll().catch(error => {
             res.send({
                 status: 'ERROR',
                 message: 'No existen usuarios activos o hubo no se pudieron obtener.',
@@ -15,8 +15,8 @@ const usuario_controllers = {
 
         res.send({
             status: 'OK',
-            usuarios_cant: usuariosActivos.length,
-            usuarios_activos: usuariosActivos
+            usuarios_cant: usuarios.length,
+            usuarios: usuarios
         });
     },
 
@@ -57,6 +57,7 @@ const usuario_controllers = {
     },
 
     actualizarUsuario: async(req, res) => {
+
         await dataBase.UsuarioModel.update(req.body, { where: { id_usuario: req.params.id } }).catch(error => {
             res.send({
                 status: 'ERROR',

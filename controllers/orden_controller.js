@@ -4,6 +4,7 @@ const colors = require('colors');
 // - Controladores de producto.
 const orden_controller = {
     crearOrden: async(req, res) => {
+        // Obtengo mi usuario logueado.
         const usuarioLogueado = res.locals.payloadUsuario;
 
         const nuevaOrden = {
@@ -15,6 +16,7 @@ const orden_controller = {
             ultima_actualizacion: new Date(),
         };
 
+        // Creo una nueva orden en la DB.
         const ordenDb = await dataBase.ordenModel.create(nuevaOrden).catch(error => {
             res.send({
                 message: 'No se pudo crear la orden.',
@@ -22,9 +24,11 @@ const orden_controller = {
             });
         });
 
+        // Guardo el id de la orden que acabo de crear.
         const idOrdenCreada = ordenDb.id_orden;
         const productosOrden = setProductosArrayForDb(req.body.productos, idOrdenCreada);
 
+        // Inserto el arreglo de productos mediante un Bulk.
         const ordenProductos = await dataBase.productosOrdenModel.bulkCreate(productosOrden).catch(async(bulkError) => {
             rollBackOrdenCreada(idOrdenCreada);
             console.log(colors.bgRed('No se pudo insertar la orden de productos, se hizo un roll back de la orden creada.'));
@@ -46,7 +50,7 @@ const orden_controller = {
         const listaOrdenes = await dataBase.ordenModel.findAll({ include: [dataBase.productosOrdenModel] }).catch(error => {
             res.send({
                 status: 'ERROR',
-                message: 'No existen productos activos o no se pudieron obtener.',
+                message: 'No se pudo recuperar un listado de ordenes.',
                 error
             });
         });
@@ -62,7 +66,7 @@ const orden_controller = {
         const ordenEliminado = await dataBase.ordenModel.destroy({ where: { id_orden: req.params.id } }).catch(error => {
             res.send({
                 status: 'ERROR',
-                message: 'Hubo un problema en la peticion.',
+                message: 'Hubo un problema al querer eliminar la orden.',
                 error
             });
         });
@@ -71,7 +75,7 @@ const orden_controller = {
         const productosOrden = await dataBase.productosOrdenModel.destroy({ where: { id_orden: req.params.id } }).catch(error => {
             res.send({
                 status: 'ERROR',
-                message: 'Hubo un problema en la peticion.',
+                message: 'Hubo un problema al querer eliminar los productos de la orden.',
                 error
             });
         });
@@ -85,7 +89,7 @@ const orden_controller = {
         } else {
             res.send({
                 status: 'OK',
-                message: 'El ID ingresado no existe.',
+                message: 'No existe una orden con el ID ingresado.',
             });
         }
     },
