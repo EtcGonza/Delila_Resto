@@ -224,17 +224,3 @@ Contiene un listado de todas las ordenes en el sistema, las que estan en proceso
 
 ### ProductosOrdenes
 Esta es una tabla intermedia entre productos y ordenes. Sirve para poder manejar la cantidad de un producto en una orden. Para hacer esto utiliza el id_producto y el id_orden, mas un campo de cantidad.
-
-
-
-
-*This text will be italic*
-_This will also be italic_
-
-**This text will be bold**
-__This will also be bold__
-
-_You **can** combine them_
-
-I think you should use an
-`<addr>` element here instead.
