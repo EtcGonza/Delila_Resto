@@ -24,7 +24,7 @@ server.post('/usuarios', [generalMiddleware.checkBody, userMiddleware.validarBod
 server.delete('/usuarios/:id', [generalMiddleware.checkIdParam, userMiddleware.validarToken], usuarioController.borrarUsuario);
 
 //  * RECURSO PRIVADO | Actualizo campo de usuarios.
-server.put('/usuarios/:id', [generalMiddleware.checkIdParam, generalMiddleware.checkBody, userMiddleware.validarBodyType, userMiddleware.validarToken], usuarioController.actualizarUsuario);
+server.put('/usuarios', [generalMiddleware.checkIdParam, generalMiddleware.checkBody, userMiddleware.validarBodyType, userMiddleware.validarToken], usuarioController.actualizarUsuario);
 
 // * RECURSO PUBLICO | Login de usuario.
 server.post('/usuarios/login', [generalMiddleware.checkBody, userMiddleware.buscarUsuario], usuarioController.loginUsuario);

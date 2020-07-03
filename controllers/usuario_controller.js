@@ -57,8 +57,9 @@ const usuario_controllers = {
     },
 
     actualizarUsuario: async(req, res) => {
+        const usuarioLogueado = res.locals.payloadUsuario;
 
-        await dataBase.UsuarioModel.update(req.body, { where: { id_usuario: req.params.id } }).catch(error => {
+        await dataBase.UsuarioModel.update(req.body, { where: { id_usuario: usuarioLogueado.id_usuario } }).catch(error => {
             res.send({
                 status: 'ERROR',
                 message: 'El ID ingresado no existe o hubo un problema al actualizar el usuario.',
@@ -75,6 +76,7 @@ const usuario_controllers = {
 
     loginUsuario: async(req, res) => {
         const usuario = res.locals.usuarioValido;
+
         const token = await jwt.sign({ usuario_logueado: usuario }, firmaJwt, { expiresIn: new Date().getTime() + 30000 * 1000 });
 
         res.send({

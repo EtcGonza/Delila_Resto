@@ -21,11 +21,6 @@ server.delete('/orden/:id', [generalMiddleware.checkIdParam,
     userMiddleware.validarPermiso
 ], ordenController.eliminarOrden);
 
-server.put('/orden/:id', [generalMiddleware.checkIdParam,
-    userMiddleware.validarToken,
-    userMiddleware.validarPermiso
-], ordenController.actualizarOrden);
-
 server.put('/orden/actualizarEstado/:id', [generalMiddleware.checkIdParam,
     userMiddleware.validarToken,
     userMiddleware.validarPermiso

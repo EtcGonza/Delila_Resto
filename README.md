@@ -28,9 +28,9 @@ En el body se debe enviar **'nombre'**, **'apellido'**, **'email'**, **'celular'
 }
 ```
 
-### 2.PUT=>/usuarios/{id_usuario}
+### 2.PUT=>/usuarios
 - **Descripcion:** Actualiza uno o todos los campos de un Usuario.
-- **Ejemplo de url:** www.localhost:3000/usuarios/37
+- **Ejemplo de url:** www.localhost:3000/usuarios
 - **Datos Requeridos:**
 En el body se debe enviar los datos que se quieran actualizar.
 Se debe enviar un **'token'** en el body.
@@ -41,7 +41,8 @@ Se debe enviar un **'token'** en el body.
 "nombre": "Cirilla",
 "apellido": "Fiona Elen Riannon",
 "email": "ciri@gmail.com",
-"celular": "1111111111"
+"celular": "1111111111",
+"token": "TuTokenValidoAca"
 }
 ```
 
