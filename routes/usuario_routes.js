@@ -10,9 +10,6 @@ const generalMiddleware = require('../middlewares/generales_middlewares');
 const usuarioController = require('../controllers/usuario_controller');
 
 // - ENDPOINTS DE USUARIOS
-//  ? Tendria que validar que en los endpoints con body, no falten argumentos?
-//  ? y si faltan, ¿deberia notificar cuales faltaron?
-
 
 // * RECURSO PRIVADO | Obtengo todos los usuarios ACTIVOS.
 server.get('/usuarios', [userMiddleware.validarToken, userMiddleware.validarPermiso], usuarioController.getUsuarios);
@@ -21,10 +18,10 @@ server.get('/usuarios', [userMiddleware.validarToken, userMiddleware.validarPerm
 server.post('/usuarios', [generalMiddleware.checkBody, userMiddleware.validarBodyType, userMiddleware.emailsDuplicados], usuarioController.crearUsuario);
 
 // * RECURSO PRIVADO | Elimino un usuario.
-server.delete('/usuarios/:id', [generalMiddleware.checkIdParam, userMiddleware.validarToken], usuarioController.borrarUsuario);
+server.delete('/usuarios', [userMiddleware.validarToken], usuarioController.borrarUsuario);
 
 //  * RECURSO PRIVADO | Actualizo campo de usuarios.
-server.put('/usuarios', [generalMiddleware.checkIdParam, generalMiddleware.checkBody, userMiddleware.validarBodyType, userMiddleware.validarToken], usuarioController.actualizarUsuario);
+server.put('/usuarios', [userMiddleware.validarToken, generalMiddleware.checkBody, userMiddleware.validarBodyType], usuarioController.actualizarUsuario);
 
 // * RECURSO PUBLICO | Login de usuario.
 server.post('/usuarios/login', [generalMiddleware.checkBody, userMiddleware.buscarUsuario], usuarioController.loginUsuario);

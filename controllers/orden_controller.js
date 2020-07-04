@@ -9,7 +9,7 @@ const orden_controller = {
 
         const nuevaOrden = {
             id_usuario: usuarioLogueado.id_usuario,
-            precio_total: req.body.precio_total,
+            precio_total: calcularPrecioTotal(req.body.productos),
             metodo_pago: req.body.metodo_pago,
             estado: 'Nuevo',
             fecha_creado: new Date(),
@@ -57,6 +57,7 @@ const orden_controller = {
 
         res.send({
             status: 'Ok',
+            ordenes_cant: listaOrdenes.length,
             listaOrdenes
         });
     },
@@ -94,23 +95,6 @@ const orden_controller = {
         }
     },
 
-    actualizarOrden: async(req, res) => {
-        // * Debo actulizar ultimaFecha Actualizacion orden
-        await dataBase.ordenModel.update(req.body, { where: { id_orden: req.params.id } }).catch(error => {
-            res.send({
-                status: 'ERROR',
-                message: 'El ID ingresado no existe o hubo un problema al actualizar la orden.',
-                error
-            });
-        });
-
-        res.send({
-            status: 'OK',
-            message: 'Orden actualizada.',
-            campos_actualizados: req.body
-        });
-    },
-
     actualizarSigEstadoOrden: async(req, res) => {
         const ordenDb = await dataBase.ordenModel.findOne({ where: { id_orden: req.params.id } }).catch(error => {
             res.send({
@@ -121,7 +105,8 @@ const orden_controller = {
         });
 
         const nuevoEstado = {
-            estado: actualizarSigEstado(ordenDb.estado)
+            estado: actualizarSigEstado(ordenDb.estado),
+            ultima_actualizacion: new Date()
         };
 
         if (nuevoEstado.estado != null) {
@@ -181,6 +166,14 @@ function actualizarSigEstado(estadoActual) {
         'Enviando': 'Entregado',
         'Entregado': null
     }[estadoActual];
+}
+
+function calcularPrecioTotal(arrayProductosBody) {
+    var sumaTotal = 0;
+    arrayProductosBody.forEach(objetoProducto => {
+        sumaTotal = sumaTotal + objetoProducto.producto.precio;
+    });
+    return sumaTotal;
 }
 
 // - Exporto mis controladores para usarlos en producto_routes.js.

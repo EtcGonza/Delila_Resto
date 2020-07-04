@@ -4,7 +4,7 @@ const dataBase = require('../config/dataBase');
 const producto_controllers = {
 
     getProductos: async(req, res) => {
-        const productosActivos = await dataBase.productoModel.findAll({ where: { activo: true } }).catch(error => {
+        const productos = await dataBase.productoModel.findAll().catch(error => {
             res.send({
                 status: 'ERROR',
                 message: 'No existen productos activos o no se pudieron obtener.',
@@ -14,8 +14,8 @@ const producto_controllers = {
 
         res.send({
             status: 'OK',
-            productos_cant: productosActivos.length,
-            productos_activos: productosActivos
+            productos_cant: productos.length,
+            productos
         });
     },
 

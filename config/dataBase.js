@@ -75,6 +75,11 @@ const productoModel = sequelizeDB.define('Producto', {
     precio: {
         type: Sequelize.INTEGER,
         allowNull: false
+    },
+    activo: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: true
     }
 });
 

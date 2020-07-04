@@ -46,9 +46,9 @@ Se debe enviar un **'token'** en el body.
 }
 ```
 
-### 3.DELETE=>/usuarios/{id_usuario}
+### 3.DELETE=>/usuarios
 - **Descripcion:** Elimina un Usuario.
-- **Ejemplo de url:** www.localhost:3000/usuarios/42
+- **Ejemplo de url:** www.localhost:3000/usuarios
 - **Datos Requeridos:**
 En la url se debe incluir el id del usuario que se quiere eliminar.
 Se debe enviar un **'token'** en el body.
@@ -157,14 +157,16 @@ Es un numero que representa la cantidad del producto que se pidio.
 			"producto": {
             "id_producto": 2,
             "titulo": "Cangreburger",
-            "precio": 1000
+            "precio": 1000,
+			"activo": true
         }, 
 		"cantidad": 2},
 		{
 			"producto": {
             "id_producto": 4,
             "titulo": "Champiñones",
-            "precio": 180
+            "precio": 180,
+			"activo": true
         	}, 
 		"cantidad": 3}
 		],

@@ -4,83 +4,86 @@ const jwt = require('jsonwebtoken');
 const firmaJwt = 'I am batman';
 
 // - MIDDLEWARES DE USUARIO
-const emailsDuplicados = async(req, res, next) => {
-    const existeEmail = await checkEmailDisponible(req.body.email);
 
-    if (existeEmail) {
-        console.log(colors.bgRed('[MIDDLEWARE] El email ingresado ya esta en uso.'));
-        res.send({
-            message: 'El email ingresado ya esta en uso.',
-            status: 200
-        });
-    } else {
-        console.log(colors.bgGreen('[MIDDLEWARE] El email esta disponible.'));
-        next();
-    }
-};
+const usuarioMiddlewares = {
+    emailsDuplicados: async(req, res, next) => {
+        const existeEmail = await checkEmailDisponible(req.body.email);
 
-const validarBodyType = (req, res, next) => {
-    const invalidValues = validarTipos(req.body);
+        if (existeEmail) {
+            console.log(colors.bgRed('[MIDDLEWARE] El email ingresado ya esta en uso.'));
+            res.send({
+                message: 'El email ingresado ya esta en uso.',
+                status: 200
+            });
+        } else {
+            console.log(colors.bgGreen('[MIDDLEWARE] El email esta disponible.'));
+            next();
+        }
+    },
 
-    if (invalidValues.length > 0) {
-        console.log(colors.bgRed('[MIDDLEWARE] Valores ingresados invalidos, todos los datos deben ser strings.'));
-        res.send({
-            message: 'Valores ingresados invalidos, todos los datos deben ser strings.',
-            invalidValues
-        });
-    } else {
-        next();
-    }
-};
+    validarBodyType: (req, res, next) => {
+        const invalidValues = validarTipos(req.body);
 
-const validarToken = (req, res, next) => {
+        if (invalidValues.length > 0) {
+            console.log(colors.bgRed('[MIDDLEWARE] Valores ingresados invalidos, todos los datos deben ser strings.'));
+            res.send({
+                message: 'Valores ingresados invalidos, todos los datos deben ser strings.',
+                invalidValues
+            });
+        } else {
+            next();
+        }
+    },
 
-    if (!req.body.token) {
-        console.log(colors.bgRed('[MIDDLEWARE] Para acceder a este recurso necesita un token valido.'));
-        res.send({
-            message: 'Para acceder a este recurso necesita un token valido.',
-        });
-    } else {
+    validarToken: (req, res, next) => {
 
-        jwt.verify(req.body.token, firmaJwt, (error, decoded) => {
+        if (!req.body.token) {
+            console.log(colors.bgRed('[MIDDLEWARE] Para acceder a este recurso necesita un token valido.'));
+            res.send({
+                message: 'Para acceder a este recurso necesita un token valido.',
+            });
+        } else {
 
-            if (error) {
-                console.log(colors.bgRed('[MIDDLEWARE] El token ingresado no es valido/confiable o expiro.'));
-                res.send({
-                    message: 'El token ingresado no es valido/confiable o expiro.',
-                });
-            } else {
-                console.log(colors.bgGreen('[MIDDLEWARE] Token valido.'));
-                res.locals.payloadUsuario = decoded.usuario_logueado;
-                next();
-            }
-        });
-    }
-};
+            jwt.verify(req.body.token, firmaJwt, (error, decoded) => {
 
-const buscarUsuario = async(req, res, next) => {
-    const usuario = await buscarUsuarioDB(req.body.email, req.body.contrasenia);
-    if (usuario) {
-        console.log(colors.bgGreen('[MIDDLEWARE] Credenciales correctas.'));
-        res.locals.usuarioValido = usuario;
-        next();
-    } else {
-        console.log(colors.bgRed('[MIDDLEWARE] Email/ contrasenia no valido.'));
-        res.send({
-            message: 'Email/contraseña no valido.',
-        });
-    }
-};
+                if (error) {
+                    console.log(colors.bgRed('[MIDDLEWARE] El token ingresado no es valido/confiable o expiro.'));
+                    res.send({
+                        message: 'El token ingresado no es valido/confiable o expiro.',
+                    });
+                } else {
+                    console.log(colors.bgGreen('[MIDDLEWARE] Token valido.'));
+                    res.locals.payloadUsuario = decoded.usuario_logueado;
+                    next();
+                }
+            });
+        }
+    },
 
-const validarPermiso = (req, res, next) => {
-    if (esAdministrador(res.locals.payloadUsuario)) {
-        console.log(colors.bgGreen('[MIDDLEWARE] Es administrador.'));
-        next();
-    } else {
-        console.log(colors.bgRed('[MIDDLEWARE] No tiene permisos para acceder a este recurso.'));
-        res.send({
-            message: 'No tiene permisos para acceder a este recurso.',
-        });
+    buscarUsuario: async(req, res, next) => {
+        const usuario = await buscarUsuarioDB(req.body.email, req.body.contrasenia);
+        if (usuario) {
+            console.log(colors.bgGreen('[MIDDLEWARE] Credenciales correctas.'));
+            res.locals.usuarioValido = usuario;
+            next();
+        } else {
+            console.log(colors.bgRed('[MIDDLEWARE] Email/ contrasenia no valido.'));
+            res.send({
+                message: 'Email/contraseña no valido.',
+            });
+        }
+    },
+
+    validarPermiso: (req, res, next) => {
+        if (esAdministrador(res.locals.payloadUsuario)) {
+            console.log(colors.bgGreen('[MIDDLEWARE] Es administrador.'));
+            next();
+        } else {
+            console.log(colors.bgRed('[MIDDLEWARE] No tiene permisos para acceder a este recurso.'));
+            res.send({
+                message: 'No tiene permisos para acceder a este recurso.',
+            });
+        }
     }
 };
 
@@ -117,10 +120,4 @@ async function buscarUsuarioDB(email, contrasenia) {
     return usuarioDb;
 }
 
-module.exports = {
-    emailsDuplicados,
-    validarBodyType,
-    validarToken,
-    validarPermiso,
-    buscarUsuario
-};
+module.exports = usuarioMiddlewares;
