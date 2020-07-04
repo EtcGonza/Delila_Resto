@@ -138,7 +138,7 @@ En el body se deben enviar los campos de **precio_total**, **metodo_pago** (Efec
 El arreglo de productos contiene una lista de objetos donde cada objeto tiene **dos propiedades**, una llamada **producto** y otra llamada **cantidad**.
 
 ###  -La propiedad **producto** 
-Es un objeto que contiene las propiedas del producto pedido siendo estas las mismas a la entidad de la tabla **Productos**. Por lo tanto este objeto contiene el **id_producto**, **titulo**, y **precio**.
+Es un objeto que contiene las propiedas del producto pedido siendo estas las mismas a la entidad de la tabla **Productos**. Por lo tanto este objeto contiene el **id_producto**, **titulo**, **precio** y **activo**.
 
 > *__Atencion__: Se recomienda que para conformar correctamente esta propiedad se realice un [GET al endpoint de /productos](#4.GET=>/productos) para poder obtener estos datos y asi armar la propiedad correctamente.*
 
