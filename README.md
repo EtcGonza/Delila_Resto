@@ -5,7 +5,7 @@ Para poder utilizar esta API Rest primero se deben instalar los paquetes de Node
 
 Una vez que se terminan de instalar las dependencias de Node se debe levantar el projecto. Para esto podemos utilizar el comando nodemon seguido del archivo que inicia el projecto, `nodemon server.js`.
 
-
+Opcionalmente se puede importar el archivo `delila_resto.sql` para tener una base de datos ya precargada con algunos usuarios, productos y ordenes.
 
 # Endpoints:
 
